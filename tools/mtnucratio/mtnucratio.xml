@@ -23,7 +23,15 @@
 
     <inputs>
         <param name="input_bam" type="data" format="bam" label="Input BAM file" help="BAM file must be coordinate-sorted and indexed." />
-        <param name="mt_chrom_name" type="text" value="MT" label="Mitochondrial Chromosome Name" help="Exact name of the mitochondrial contig (e.g., MT, chrM, rCRS)." />
+        <param name="mt_chrom_name" type="text" value="MT" label="Mitochondrial Chromosome Name" help="Exact name of the mitochondrial contig (e.g., MT, chrM, rCRS).">
+            <sanitizer invalid_char="">
+                <valid initial="string.letters,string.digits">
+                    <add value="_" />
+                    <add value="." />
+                    <add value="-" />
+                </valid>
+            </sanitizer>
+        </param>
     </inputs>
 
     <outputs>
