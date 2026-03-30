@@ -777,7 +777,6 @@
                 <param name="options_type_selector" value="full"/>
                 <conditional name="optional_inputs">
                     <param name="optional_inputs_selector" value="set" />
-                    <param name="trim_complex_tail" value="true"/>
                 </conditional>
                 <conditional name="population_model">
                     <param name="population_model_selector" value="set"/>
