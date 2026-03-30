@@ -2,7 +2,7 @@
     <description>Calculate relative coverage</description>
     <macros>
         <token name="@TOOL_VERSION@">1.1.2</token>
-        <token name="@VERSION_SUFFIX@">0</token>
+        <token name="@VERSION_SUFFIX@">1</token>
         <token name="@PROFILE@">25.1</token>
     </macros>
 
@@ -57,7 +57,7 @@ ${n}	0	${l}
     </outputs>
 
     <tests>
-        <test expect_num_outputs="1">
+        <test expect_num_outputs="2">
             <param name="input_bam" value="test.bam" ftype="bam" />
             <param name="input_bed" value="regions.bed.gz" ftype="bed" />
             <param name="base_quality" value="0" />

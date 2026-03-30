@@ -28,8 +28,8 @@
 
     <inputs>
         <param name="input_bams" type="data" format="bam" multiple="true" label="Input BAM file(s)" help="Select one or more coordinate-sorted BAM files." />
-        <param argument="-minMapQ" name="min_mapq" type="integer" value="30" min="0" label="Minimum Mapping Quality" help="Discard reads with mapping quality below this threshold."/>
-        <param argument="-minQ" name="min_q" type="integer" value="30" min="0" label="Minimum Base Quality" help="Discard bases with quality below this threshold."/>
+        <param argument="-minMapQ" name="min_mapq" type="integer" value="20" min="0" label="Minimum Mapping Quality" help="Discard reads with mapping quality below this threshold."/>
+        <param argument="-minQ" name="min_q" type="integer" value="20" min="0" label="Minimum Base Quality" help="Discard bases with quality below this threshold."/>
         <param argument="-r" name="region" type="text" value="X:5000000-154900000" label="Region" help="Target region for analysis (default is the reliable region of the X chromosome).">
             <validator type="regex" message="Region format must be like 'chr' or 'chr:start-end'">^[\w\d\._:-]+$</validator>
         </param>
