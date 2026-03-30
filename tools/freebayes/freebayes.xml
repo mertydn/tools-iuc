@@ -1,4 +1,4 @@
-<tool id="freebayes" name="FreeBayes" version="@TOOL_VERSION@+galaxy1" profile="23.0">
+<tool id="freebayes" name="FreeBayes" version="@TOOL_VERSION@+galaxy2" profile="23.0">
     <description>bayesian genetic variant detector</description>
     <macros>
         <import>macros.xml</import>
@@ -44,6 +44,20 @@
     #if ( str( $options_type.options_type_selector ) == 'cline' or str( $options_type.options_type_selector ) == 'full' ) and str( $options_type.optional_inputs.optional_inputs_selector ) == 'set' and str( $options_type.optional_inputs.input_variant_type.input_variant_type_selector ) == "provide_vcf":
         ln -s -f '${options_type.optional_inputs.input_variant_type.input_variant_vcf}' input_variant_vcf.vcf.gz &&
         ln -s '$options_type.optional_inputs.input_variant_type.input_variant_vcf.metadata.tabix_index' input_variant_vcf.vcf.gz.tbi &&
+    #end if
+
+    ##If custom_discovery mode is selected, run the script directly without splitting the genome and cut the script!
+    #if str( $options_type.options_type_selector ) == "custom_discovery":
+        freebayes
+        #for $bam_count, $input_bam in enumerate( $input_bamfiles ):
+            --bam 'b_${bam_count}.${input_bam.ext}'
+        #end for
+        --fasta-reference '${reference_fasta_filename}'
+        -p $options_type.p_val
+        -C $options_type.c_val
+        -g $options_type.g_val
+        > '${output_vcf}' ;
+        exit \$? ;
     #end if
 
     ##if the user has specified a region or target file, just use that instead of calculating a set of unique regions
@@ -347,6 +361,7 @@
                 <option value="naive">3. Frequency-based pooled calling</option>
                 <option value="naive_w_filters">4. Frequency-based pooled calling with filtering and coverage</option>
                 <option value="full">5. Full list of options</option>
+                <option value="custom_discovery">6. Custom Discovery Mode (Manual -p, -C, -g)</option>
             </param>
             <when value="full">
 
@@ -621,6 +636,11 @@
             <when value="simple_w_filters" />
             <when value="naive" />
             <when value="naive_w_filters" />
+            <when value="custom_discovery">
+                <param argument="-p" name="p_val" type="integer" value="2" label="Ploidy" help="Set ploidy for the analysis. (Default: 2)" />
+                <param argument="-C" name="c_val" type="integer" value="1" label="Min. Alternate Count" help="Require at least this count of observations supporting an alternate allele within a single individual. (Default: 1)" />
+                <param argument="-g" name="g_val" type="integer" value="1" label="Min. Alternate Total" help="Require at least this count of observations supporting an alternate allele within the total population. (Default: 1)" />
+            </when>
         </conditional>
         <conditional name="output_options">
             <param name="flavor" type="select" label="Type of main output to produce" help="The tool will, by default, produce VCF output with information about sites with called variants. If you want also information (such as depth of coverage) about non-called sites, you can use the gVCF or gVCF with custom block size options. The first collapses the stats of entire blocks of consecutive non-called sites into one non-call record. The second gives you control over how many consecutive non-called sites should be combined into a non-call record.">
@@ -644,61 +664,97 @@
             <filter>( options_type['options_type_selector'] == 'cline' or options_type['options_type_selector'] == 'full' ) and options_type['optional_inputs']['optional_inputs_selector'] == 'set' and options_type['optional_inputs']['output_trace_option'] is True</filter>
         </data>
     </outputs>
+    	
     <tests>
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
-            <param name="options_type_selector" value="simple"/>
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple"/>
+            </conditional>
             <output name="output_vcf" file="freebayes-phix174-test1.vcf" lines_diff="4" />
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta" />
-            <param name="input_bams" ftype="bam" value="freebayes-phix174.bam" />
-            <param name="options_type_selector" value="simple" />
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta" />
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam" />
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple" />
+            </conditional>
             <conditional name="output_options">
                 <param name="flavor" value="gvcf" />
             </conditional>
             <output name="output_vcf" file="freebayes-phix174.gvcf" lines_diff="4" />
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta" />
-            <param name="input_bams" ftype="bam" value="freebayes-phix174.bam" />
-            <param name="options_type_selector" value="simple" />
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta" />
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam" />
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple" />
+            </conditional>
             <conditional name="output_options">
                 <param name="flavor" value="gvcf_custom" />
             </conditional>
-            <!-- This test produces one record per reference position
+			<!-- This test produces one record per reference position
             so the test file only contains the first part of the expected output up to the second variant site -->
             <output name="output_vcf" file="freebayes-phix174.full.sample.gvcf" compare="contains" lines_diff="2" />
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
-            <param name="options_type_selector" value="naive_w_filters"/>
-            <param name="coverage_options_selector" value="set" />
-            <param name="min_coverage" value="14"/>
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="naive_w_filters"/>
+            </conditional>
+            <conditional name="coverage_options">
+                <param name="coverage_options_selector" value="set" />
+                <param name="min_coverage" value="14"/>
+            </conditional>
             <output name="output_vcf" file="freebayes-phix174-test2.vcf" lines_diff="4" />
         </test>
         <!-- Test that user-provided (variant-input option) sites are included in output -->
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
-            <param name="options_type_selector" value="full"/>
-            <conditional name="optional_inputs">
-                <param name="optional_inputs_selector" value="set" />
-                <conditional name="input_variant_type">
-                    <param name="input_variant_type_selector" value="provide_vcf" />
-                    <param name="input_variant_vcf" value="freebayes-phix174-input-sites-test3.vcf.bgzip" />
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="full"/>
+                <conditional name="optional_inputs">
+                    <param name="optional_inputs_selector" value="set" />
+                    <conditional name="input_variant_type">
+                        <param name="input_variant_type_selector" value="provide_vcf" />
+                        <param name="input_variant_vcf" value="freebayes-phix174-input-sites-test3.vcf.bgzip" />
+                    </conditional>
                 </conditional>
             </conditional>
             <output name="output_vcf">
@@ -707,54 +763,117 @@
                 </assert_contents>
             </output>
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
-            <param name="options_type_selector" value="full"/>
-            <param name="population_model_selector" value="set"/>
-            <param name="P" value="1"/>
-            <param name="trim_complex_tail" value="--trim-complex-tail"/>
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="full"/>
+                <conditional name="optional_inputs">
+                    <param name="optional_inputs_selector" value="set" />
+                </conditional>
+                <conditional name="population_model">
+                    <param name="population_model_selector" value="set"/>
+                    <param name="P" value="1"/>
+                </conditional>
+            </conditional>
             <output name="output_vcf" file="freebayes-phix174-test4.vcf" lines_diff="4" />
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-hxb2.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-hxb2.bam"/>
-            <param name="options_type_selector" value="simple"/>
-            <param name="coverage_options_selector" value="set" />
-            <param name="min_coverage" value="250" />
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-hxb2.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-hxb2.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple"/>
+            </conditional>
+            <conditional name="coverage_options">
+                <param name="coverage_options_selector" value="set" />
+                <param name="min_coverage" value="250" />
+            </conditional>
             <output name="output_vcf" file="freebayes-hxb2-test5.vcf" lines_diff="4" />
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-hxb2.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-hxb2.bam"/>
-            <param name="options_type_selector" value="simple"/>
-            <param name="coverage_options_selector" value="set" />
-            <param name="limit_coverage" value="400" />
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-hxb2.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-hxb2.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple"/>
+            </conditional>
+            <conditional name="coverage_options">
+                <param name="coverage_options_selector" value="set" />
+                <param name="limit_coverage" value="400" />
+            </conditional>
             <output name="output_vcf" file="freebayes-hxb2-test6.vcf" lines_diff="4" />
         </test>
+
         <test expect_num_outputs="1">
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-hxb2.fasta"/>
-            <param name="input_bams" ftype="bam" value="freebayes-hxb2.bam"/>
-            <param name="options_type_selector" value="simple"/>
-            <param name="coverage_options_selector" value="set" />
-            <param name="skip_coverage" value="100" />
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-hxb2.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-hxb2.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple"/>
+            </conditional>
+            <conditional name="coverage_options">
+                <param name="coverage_options_selector" value="set" />
+                <param name="skip_coverage" value="100" />
+            </conditional>
             <output name="output_vcf" file="freebayes-hxb2-test7.vcf" lines_diff="4" />
         </test>
+
         <test expect_num_outputs="1"> <!-- Test with CRAM -->
-            <param name="reference_source_selector" value="history" />
-            <param name="processmode" value="individual" />
-            <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
-            <param name="input_bams" ftype="cram" value="freebayes-phix174.cram"/>
-            <param name="options_type_selector" value="simple"/>
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="cram" value="freebayes-phix174.cram"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="simple"/>
+            </conditional>
             <output name="output_vcf" file="freebayes-phix174-test1.vcf" lines_diff="6" />
+        </test>
+
+        <test expect_num_outputs="1">
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history" />
+                <param name="ref_file" ftype="fasta" value="freebayes-phix174.fasta"/>
+                <conditional name="batchmode">
+                    <param name="processmode" value="individual" />
+                    <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
+                </conditional>
+            </conditional>
+            <conditional name="options_type">
+                <param name="options_type_selector" value="custom_discovery"/>
+                <param name="p_val" value="2"/>
+                <param name="c_val" value="1"/>
+                <param name="g_val" value="0"/>
+            </conditional>
+            <output name="output_vcf" file="freebayes-phix174-test8.vcf" lines_diff="4" />
         </test>
     </tests>
     <help><![CDATA[
