@@ -1,4 +1,4 @@
-<tool id="freebayes" name="FreeBayes" version="@TOOL_VERSION@+galaxy2" profile="23.0">
+<tool id="freebayes" name="FreeBayes" version="@TOOL_VERSION@+galaxy1" profile="23.0">
     <description>bayesian genetic variant detector</description>
     <macros>
         <import>macros.xml</import>
@@ -46,26 +46,12 @@
         ln -s '$options_type.optional_inputs.input_variant_type.input_variant_vcf.metadata.tabix_index' input_variant_vcf.vcf.gz.tbi &&
     #end if
 
-    ##If custom_discovery mode is selected, run the script directly without splitting the genome and cut the script!
-    #if str( $options_type.options_type_selector ) == "custom_discovery":
-        freebayes
-        #for $bam_count, $input_bam in enumerate( $input_bamfiles ):
-            --bam 'b_${bam_count}.${input_bam.ext}'
-        #end for
-        --fasta-reference '${reference_fasta_filename}'
-        -p $options_type.p_val
-        -C $options_type.c_val
-        -g $options_type.g_val
-        > '${output_vcf}' ;
-        exit \$? ;
-    #end if
-
     ##if the user has specified a region or target file, just use that instead of calculating a set of unique regions
     #if str( $target_limit_type.target_limit_type_selector ) == "limit_by_target_file":
         ln -s '${target_limit_type.input_target_bed}' regions_all.bed &&
     #elif str( $target_limit_type.target_limit_type_selector ) == "limit_by_region":
         printf '${target_limit_type.region_chromosome}\t${target_limit_type.region_start}\t${target_limit_type.region_end}' > regions_all.bed &&
-    #else
+    #elif str( $target_limit_type.target_limit_type_selector ) == "do_not_limit":
         ##divide up the regions in the bam file for efficient processing
         #for $bam_count, $input_bam in enumerate( $input_bamfiles ):
             samtools view -H b_${bam_count}.${input_bam.ext}|
@@ -75,9 +61,12 @@
         #end for
     #end if
 
-    sort -u regions_all.bed > regions_uniq.bed &&
-    ## split into even small chunks, this has some disatvantages and will not be used for the moment
-    ## bedtools makewindows -b regions_uniq.bed -w 10000000 -s 9990000 > regions.bed &&
+    ## If Joint processing is requested, bypass the bed splitting entirely
+    #if str( $target_limit_type.target_limit_type_selector ) != "do_not_limit_jointly":
+        sort -u regions_all.bed > regions_uniq.bed &&
+    #else:
+        echo "all" > regions_uniq.bed &&
+    #end if
 
     mkdir vcf_output failed_alleles trace &&
 
@@ -91,7 +80,9 @@
 
         freebayes
 
-        --region '\$i'
+        #if str( $target_limit_type.target_limit_type_selector ) != "do_not_limit_jointly":
+            --region '\$i'
+        #end if
 
         #for $bam_count, $input_bam in enumerate( $input_bamfiles ):
             --bam 'b_${bam_count}.${input_bam.ext}'
@@ -124,6 +115,10 @@
             --pooled-continuous
             --report-monomorphic
             --standard-filters
+        #elif str( $options_type.options_type_selector ) == "custom_discovery":
+            -p $options_type.p_val
+            -C $options_type.c_val
+            -g $options_type.g_val
         #elif str( $options_type.options_type_selector ) == "full":
             #if str( $options_type.optional_inputs.optional_inputs_selector ) == 'set':
                 ${options_type.optional_inputs.report_monomorphic}
@@ -329,10 +324,12 @@
         <conditional name="target_limit_type">
             <param name="target_limit_type_selector" type="select" label="Limit variant calling to a set of regions?" help="Sets --targets or --region options">
                 <option value="do_not_limit" selected="true">Do not limit</option>
+                <option value="do_not_limit_jointly">Do not limit (single joint process)</option>
                 <option value="limit_by_target_file">Limit by target file</option>
                 <option value="limit_by_region">Limit to region</option>
             </param>
             <when value="do_not_limit" />
+            <when value="do_not_limit_jointly" />
             <when value="limit_by_target_file">
                 <param name="input_target_bed" argument="--targets" type="data" format="bed" label="Limit analysis to regions in this BED dataset" />
             </when>
@@ -639,7 +636,7 @@
             <when value="custom_discovery">
                 <param argument="-p" name="p_val" type="integer" value="2" label="Ploidy" help="Set ploidy for the analysis. (Default: 2)" />
                 <param argument="-C" name="c_val" type="integer" value="1" label="Min. Alternate Count" help="Require at least this count of observations supporting an alternate allele within a single individual. (Default: 1)" />
-                <param argument="-g" name="g_val" type="integer" value="1" label="Min. Alternate Total" help="Require at least this count of observations supporting an alternate allele within the total population. (Default: 1)" />
+                <param argument="-g" name="g_val" type="integer" value="0" label="Skip Coverage" help="Skip processing of alignments overlapping positions with coverage >N" />
             </when>
         </conditional>
         <conditional name="output_options">
@@ -777,6 +774,7 @@
                 <param name="options_type_selector" value="full"/>
                 <conditional name="optional_inputs">
                     <param name="optional_inputs_selector" value="set" />
+                    <param name="trim_complex_tail" value="true"/>
                 </conditional>
                 <conditional name="population_model">
                     <param name="population_model_selector" value="set"/>
@@ -866,6 +864,9 @@
                     <param name="processmode" value="individual" />
                     <param name="input_bams" ftype="bam" value="freebayes-phix174.bam"/>
                 </conditional>
+            </conditional>
+            <conditional name="target_limit_type">
+                <param name="target_limit_type_selector" value="do_not_limit_jointly" />
             </conditional>
             <conditional name="options_type">
                 <param name="options_type_selector" value="custom_discovery"/>
