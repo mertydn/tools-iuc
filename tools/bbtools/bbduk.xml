@@ -85,22 +85,12 @@ in='${read1_file}'
     #end if
 #end if
 
-#if $advanced_options.rcomp == "f":
-    rcomp='f'
-#end if
-#if $advanced_options.maskmiddle == "f":
-    maskmiddle='f'
-#end if
-#if int($advanced_options.minkmerhits) > 1:
-    minkmerhits='${advanced_options.minkmerhits}'
-#end if
-#if float($advanced_options.minkmerfraction) > 0:
-    minkmerfraction=$advanced_options.minkmerfraction
-#end if
-#if int($advanced_options.hammingdistance) > 0:
-    hammingdistance=$advanced_options.hammingdistance
-#end if
+rcomp='${advanced_options.rcomp}'
+maskmiddle='${advanced_options.maskmiddle}'
+minkmerhits='${advanced_options.minkmerhits}'
+minkmerfraction=$advanced_options.minkmerfraction
 mincovfraction=$advanced_options.mincovfraction
+hammingdistance=$advanced_options.hammingdistance
 qhdist=$advanced_options.qhdist
 editdistance=$advanced_options.editdistance
 forbidn='${advanced_options.forbidn}'
@@ -401,7 +391,7 @@ t=\${GALAXY_SLOTS:-4}
             
             <param name="outputs_select" value="outu"/>
             <param name="log_file" value="true"/>
-            <output name="outputu" file="bduk_output_entropy_filtered.fastqsanger" ftype="fastqsanger" compare="sim_size"/>
+            <output name="outputu" file="bduk_output_entropy_filtered.fastqsanger" ftype="fastqsanger"/>
             <output name="log_output" ftype="txt">
                 <assert_contents>
                     <has_text text="Executing jgi.BBDuk"/>
