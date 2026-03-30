@@ -5,9 +5,6 @@
         <import>macros.xml</import>
     </macros>
 
-    <expand macro="requirements">
-        <requirement type="package" version="3.11">python</requirement>
-    </expand>
 	<required_files>
         <include path="print_x_contamination.py"/>
     </required_files>

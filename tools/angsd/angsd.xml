@@ -5,10 +5,6 @@
         <import>macros.xml</import>
     </macros>
 
-    <expand macro="requirements">
-		<requirement type="package" version="1.23">samtools</requirement>
-    </expand>
-    
     <command detect_errors="exit_code"><![CDATA[
         ## 1. Link BAM files with proper .bam extensions
         touch bam.filelist &&
@@ -23,7 +19,7 @@
         #end for
 
         ## 2. Run ANGSD
-		angsd -bam bam.filelist -out output -nThreads \${GALAXY_SLOTS:-1} -doCounts 1 -iCounts 1 -minMapQ $min_mapq -minQ $min_q -r '$region'
+		angsd -bam bam.filelist -out output -nThreads \"${GALAXY_SLOTS:-1}" -doCounts 1 -iCounts 1 -minMapQ $min_mapq -minQ $min_q -r '$region'
     ]]></command>
 
     <inputs>
@@ -36,22 +32,14 @@
     </inputs>
 
     <outputs>
-        <data name="output_arg" format="txt" from_work_dir="output.arg" label="${tool.name} on ${on_string}: Arguments" />
-        <data name="output_icnts" format="data" from_work_dir="output.icnts.gz" label="${tool.name} on ${on_string}: Internal Counts (icnts)" />
+        <data name="output_icnts" format="gz" from_work_dir="output.icnts.gz" label="${tool.name} on ${on_string}: Internal Counts (icnts)" />
     </outputs>
 
     <tests>
-        <test expect_num_outputs="2">
+        <test expect_num_outputs="1">
             <param name="input_bams" value="test.bam" ftype="bam" />
             <param name="region" value="X:5000000-154900000" />
-            <output name="output_arg">
-                <assert_contents>
-                    <has_text text="-r X:5000000-154900000" />
-                    <has_text text="-iCounts 1" />
-                    <has_text text="-doCounts 1" />
-                </assert_contents>
-            </output>
-            <output name="output_icnts" file="output.icnts.gz" compare="sim_size" delta="100" />
+            <output name="output_icnts" file="output.icnts.gz" ftype="gz" compare="sim_size" delta="100" />
         </test>
     </tests>
 
@@ -65,8 +53,7 @@ This is a quick version of ANGSD wrapped to generate the internal counts (`.icnt
 **Input Requirements:**
 * One or more coordinate-sorted and indexed BAM files.
 
-**Outputs:**
-* **Arguments (.arg):** A simple text file that saves the exact settings you used.
+**Output:**
 * **Internal Counts for Contamination (.icnts.gz):** This is a specific file used for the ANGSD X-Contamination tool.
     ]]></help>
     

@@ -1,7 +1,7 @@
 name: angsd
 owner: iuc
 description: ANGSD and nuclear contamination estimation tools for ancient DNA analysis.
-homepage_url: http://www.popgen.dk/angsd/index.php/ANGSD
+homepage_url: https://github.com/angsd/angsd
 long_description: |
   This repository contains ANGSD for generating internal counts and an X-chromosome 
   contamination estimation tool, ported from the nf-core/eager pipeline. 
