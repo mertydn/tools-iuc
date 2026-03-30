@@ -39,7 +39,7 @@
         <test expect_num_outputs="1">
             <param name="input_bams" value="test.bam" ftype="bam" />
             <param name="region" value="X:5000000-154900000" />
-            <output name="output_icnts" file="output.icnts.gz" ftype="gz" compare="sim_size" delta="100" />
+            <output name="output_icnts" file="output.icnts.gz" ftype="binary" compare="sim_size" delta="100" />
         </test>
     </tests>
 
