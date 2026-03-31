@@ -406,6 +406,7 @@ t=\${GALAXY_SLOTS:-4}
             <output name="log_output" ftype="txt">
                 <assert_contents>
                     <has_text text="Executing jgi.BBDuk"/>
+                    <has_text_matching expression="Entropy-masked:\s+2 reads (2.00%)\s+126 bases (1.26%)"/>
                 </assert_contents>
             </output>
         </test>
