@@ -180,7 +180,7 @@ t=\${GALAXY_SLOTS:-4}
             </when>
         </conditional>
         <section name="advanced_options" title="Advanced options" expanded="false">
-            <param argument="k" type="integer" min="1" value="31" label="Kmer length used for finding contaminants"/>
+            <param argument="k" type="integer" min="1" value="27" label="Kmer length used for finding contaminants"/>
             <param argument="rcomp" type="boolean" truevalue="t" falsevalue="f" checked="true" label="Look for reverse-complements of kmers in addition to forward kmers?"/>
             <param argument="maskmiddle" type="boolean" truevalue="t" falsevalue="f" checked="true" label="Treat the middle base of a kmer as a wildcard to increase sensitivity in the presence of errors?"/>
             <param argument="minkmerhits" type="integer" min="1" value="1" label="Reads need at least this many matching kmers to be considered as matching the reference"/>
