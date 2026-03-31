@@ -1,5 +1,5 @@
 <tool id="bbtools_bbduk" name="BBTools: BBduk" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
-    <description>kmer and entropy decontamination</description>
+    <description>kmer- and entropy-based decontamination</description>
     <macros>
         <import>macros.xml</import>
     </macros>
