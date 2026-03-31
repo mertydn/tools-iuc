@@ -24,8 +24,8 @@
     ]]></command>
 
     <inputs>
-        <param name="icnts_file" type="data" format="data" label="ANGSD Internal Counts (.icnts.gz)" help="Connect the 'Internal Counts' output from the main ANGSD tool here." />
-        <param name="hapmap_file" type="data" format="data" label="HapMap ChrX Reference" help="Provide the HapMapChrX.gz file required for contamination estimation." />
+        <param name="icnts_file" type="data" format="gz" label="ANGSD Internal Counts (.icnts.gz)" help="Connect the 'Internal Counts' output from the main ANGSD tool here." />
+        <param name="hapmap_file" type="data" format="gz" label="HapMap ChrX Reference" help="Provide the HapMapChrX.gz file required for contamination estimation." />
         <param name="generate_json" type="boolean" checked="false" label="Generate JSON report" />
     </inputs>
 
@@ -38,8 +38,8 @@
 
     <tests>
         <test expect_num_outputs="2">
-            <param name="icnts_file" value="output.icnts.gz" ftype="binary" />
-            <param name="hapmap_file" value="test_HapMapChrX.gz" ftype="data" />
+            <param name="icnts_file" value="output.icnts.gz" ftype="gz" />
+            <param name="hapmap_file" value="test_HapMapChrX.gz" ftype="gz" />
             <param name="generate_json" value="true" />
             <output name="output_txt">
                 <assert_contents>
