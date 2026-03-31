@@ -5,6 +5,8 @@
         <import>macros.xml</import>
     </macros>
 
+    <expand macro="requirements"/>
+
     <command detect_errors="exit_code"><![CDATA[
         ## 1. Link BAM files with proper .bam extensions
         touch bam.filelist &&
