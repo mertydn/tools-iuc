@@ -101,6 +101,8 @@ skipr2='${advanced_options.skipr2}'
 #if float($advanced_options.entropy) > 0:
     entropy=$advanced_options.entropy
     entropymask=$advanced_options.entropymask
+    entropywindow=$advanced_options.entropywindow
+    entropyk=$advanced_options.entropyk
 #end if
 
 #if str($output_stats_cond.output_stats) == 'yes':
@@ -192,11 +194,14 @@ t=\${GALAXY_SLOTS:-4}
             <param argument="findbestmatch" type="boolean" truevalue="t" falsevalue="f" checked="false" label="Associate read with sequence sharing most kmers if multiple matches?"/>
             <param argument="skipr1" type="boolean" truevalue="t" falsevalue="f" checked="false" label="Don't do kmer-based operations on read 1?"/>
             <param argument="skipr2" type="boolean" truevalue="t" falsevalue="f" checked="false" label="Don't do kmer-based operations on read 2?"/>
-			<param argument="entropy" optional="true" type="float" min="0" max="1" value="0" label="Entropy threshold" />
+			<param argument="entropy" type="float" min="0" max="1" value="0" label="Entropy threshold" />
 			<param argument="entropymask" type="select" label="Entropy mask mode">
 				<option value="f" selected="true">Filter (f)</option>
-				<option value="t">Mask (t)</option>
+				<option value="t">Mask low-entropy parts of sequences with Ns (t)</option>
+				<option value="lc">Soft-mask (change low-entropy parts of sequences to lowercase) (lc)</option>
 			</param>
+			<param argument="entropywindow" type="int" value="50" label="Sliding window for entropy calculation" />
+			<param argument="entropyk" type="int" value="5" label="kmer size for entropy calculation" help="Needs to be smaller than the entropy window." />
         </section>
         <param name="outputs_select" type="select" optional="false" label="Specify outputs" multiple="true">
             <option value="outu">Unmatched</option>
