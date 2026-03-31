@@ -200,8 +200,8 @@ t=\${GALAXY_SLOTS:-4}
 				<option value="t">Mask low-entropy parts of sequences with Ns (t)</option>
 				<option value="lc">Soft-mask (change low-entropy parts of sequences to lowercase) (lc)</option>
 			</param>
-			<param argument="entropywindow" type="int" value="50" label="Sliding window for entropy calculation" />
-			<param argument="entropyk" type="int" value="5" label="kmer size for entropy calculation" help="Needs to be smaller than the entropy window." />
+			<param argument="entropywindow" type="integer" value="50" min="1" label="Sliding window for entropy calculation" />
+			<param argument="entropyk" type="integer" value="5" min="1" label="kmer size for entropy calculation" help="Needs to be smaller than the entropy window." />
         </section>
         <param name="outputs_select" type="select" optional="false" label="Specify outputs" multiple="true">
             <option value="outu">Unmatched</option>
