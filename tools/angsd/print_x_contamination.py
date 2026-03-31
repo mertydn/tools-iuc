@@ -53,14 +53,14 @@ with open("nuclear_contamination.txt", 'w') as output:
                     continue
                 if line.strip().startswith("We have nSNP sites:"):
                     nSNPs = fields[4].rstrip(",")
-                elif line.startswith("Method1") and fields[2] == 'new_llh':
+                elif line.startswith("Method1") and 'new_llh' in fields[1]:
                     mom1 = fields[3].split(":")[1]
                     err_mom1 = fields[4].split(":")[1]
                     ml1 = fields[5].split(":")[1]
                     err_ml1 = fields[6].split(":")[1]
                     if err_ml1.endswith("contamination"):
                         err_ml1 = err_ml1[:-13]
-                elif line.startswith("Method2") and fields[2] == 'new_llh':
+                elif line.startswith("Method2") and 'new_llh' in fields[1]:
                     mom2 = fields[3].split(":")[1]
                     err_mom2 = fields[4].split(":")[1]
                     ml2 = fields[5].split(":")[1]
