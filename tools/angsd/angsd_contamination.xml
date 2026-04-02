@@ -56,7 +56,7 @@
     </tests>
 
     <help><![CDATA[
-.. class:: Warning mark
+.. class:: warningmark
     This tool ONLY works for biologically male (XY) samples.
     If you run a female (XX) sample through this tool, it will see her natural two X chromosomes as "foreign DNA" and falsely report around 50% contamination.
     Do not use this tool on female samples.
